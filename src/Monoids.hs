@@ -33,7 +33,13 @@ data Steer = Steer {
 initSteer = Steer False False False
 initShip = Ship initBody initSteer
 
-initGame size = Game False False initShip [] size
+initGame size = Game False False initShip asteroids size
+
+asteroids :: [Body]
+asteroids = zipWith3 mkAsteroid masss pos speed 
+    where masss = [100, 75, 40, 200]
+          speed = [(x / 100, y / 100) | (x, y) <- pos]
+          pos   = [400, -200, (600, -30), (-123, 123)] :: [Point]
 
 speedlimit = 30
 
@@ -70,14 +76,30 @@ thrust inc velocity orientation = (vx, vy)
           vx = inc * cos ag
           ag = radiants orientation
 
+asteroidShape = polygon [
+                 ( 0.00,  0.50), ( 0.35,  0.50), 
+                 ( 0.50,  0.25), ( 0.50, -0.25), 
+                 ( 0.25, -0.50), ( 0.00, -0.50),
+                 (-0.25, -0.50), (-0.40, -0.25),
+                 (-0.50,  0.25), (-0.25,  0.40)
+                ]
+
+mkAsteroid s p v = Body v p s s False
+
 at :: Point -> Picture -> Picture
 at (x, y) = translate x y
 
 drawShip :: Ship -> Picture
-drawShip (Ship (Body _ p o _ _) _) = at p $ 
-                      color green $ 
+drawShip (Ship (Body _ p o _ c) _) = at p $ 
+                      color (if c then orange else green) $ 
                       rotate (negate o + 90) $ 
                       polygon [(0, 15), (10, -15), (0, -5), (-10, -15)]
+
+drawBody shape Body{..} = at pos $
+                     color (if collisionWarning then orange else white) $
+                     rotate (negate ori + 90) $ 
+                     scale mass mass $
+                     shape
 
 drawText size = scale size size . text
 
@@ -88,12 +110,15 @@ drawPause True = pictures [box, msg]
 drawPause _ = blank
 
 render :: Game -> Picture
-render game@Game{..} = pictures [drawShip ship, drawPause pause]
+render game@Game{..} = pictures $ [drawShip ship, drawPause pause] ++ map (drawBody asteroidShape) obstacles 
+
+updateAsteroids :: Dimension -> [Body] -> [Body]
+updateAsteroids dim bs = map (warp dim . move) bs
 
 update :: Timestep -> Game -> Game
 update _ g@Game{..} = if pause 
                         then g
-                        else g {ship = updateShip screenSize dt ship', obstacles = ob}
+                        else g {ship = updateShip screenSize ship', obstacles = updateAsteroids screenSize ob}
     where ship' = ship {body = sb}
           (sb:ob) = collisions (body ship : obstacles)
 
@@ -114,4 +139,5 @@ monoids = do
     let game = initGame (fromIntegral w, fromIntegral h)
         fps  = 60
         bg   = black
+    print game
     play FullScreen bg fps game render handle update
