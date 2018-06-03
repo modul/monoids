@@ -7,6 +7,8 @@ import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 import Graphics.Gloss.Interface.Environment
 
+import System.Random
+
 import Body
 import Shapes
 
@@ -35,13 +37,14 @@ initSteer = Steer False False False
 initShip = Ship body initSteer
     where body = initBody {shape = shipShape, mass = 30, colour = green}
 
-initGame size = Game False False initShip asteroids size
+initGame size astr = Game False False initShip astr size
 
-asteroids :: [Body]
-asteroids = zipWith3 mkAsteroid masss pos speed 
-    where masss = [100, 75, 40, 200]
-          speed = [(x / 100, y / 100) | (x, y) <- pos]
-          pos   = [400, -200, (600, -30), (-123, 123)] :: [Point]
+asteroids :: Int -> [Int] -> [Int] -> [Body]
+asteroids count dim place = zipWith3 mkAsteroid mass pos speed 
+    where speed = [(x / 1000, y / 1000) | (x, y) <- pos]
+          mass = map fromIntegral dim
+          pos = take count $ zip x (drop 2 x)
+          x = map fromIntegral place
 
 speedlimit = 30
 
@@ -126,8 +129,12 @@ handle _ g = g
 
 monoids = do
     (w, h) <- getScreenSize
-    let game = initGame (fromIntegral w, fromIntegral h)
+    gen <- newStdGen
+    let game = initGame (fromIntegral w, fromIntegral h) astr
         fps  = 60
         bg   = black
+        siz  = randomRs (50, 250) gen
+        pos  = randomRs (-h, h) gen
+        astr = asteroids 7 siz pos
     print game
     play FullScreen bg fps game render handle update
