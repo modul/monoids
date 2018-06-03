@@ -8,6 +8,7 @@ import Graphics.Gloss.Interface.IO.Game
 import Graphics.Gloss.Interface.Environment
 
 import Body
+import Shapes
 
 type Timestep = Float
 
@@ -32,8 +33,6 @@ data Steer = Steer {
 
 initSteer = Steer False False False
 initShip = Ship (initBody {shape = shipShape}) initSteer
-
-shipShape = [(0, 15), (10, -15), (0, -5), (-10, -15)]
 
 initGame size = Game False False initShip asteroids size
 
@@ -77,14 +76,6 @@ thrust inc velocity orientation = (vx, vy)
     where vy = inc * sin ag
           vx = inc * cos ag
           ag = radiants orientation
-
-asteroidShape = [
-                 ( 0.00,  0.50), ( 0.35,  0.50), 
-                 ( 0.50,  0.25), ( 0.50, -0.25), 
-                 ( 0.25, -0.50), ( 0.00, -0.50),
-                 (-0.25, -0.50), (-0.40, -0.25),
-                 (-0.50,  0.25), (-0.25,  0.40)
-                ]
 
 mkAsteroid s p v = Body v p s s asteroidShape False
 
