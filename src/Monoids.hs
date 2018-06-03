@@ -5,6 +5,7 @@ module Monoids where
 import Debug.Trace
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
+import Graphics.Gloss.Interface.Environment
 
 type Timestep = Float
 
@@ -12,7 +13,8 @@ data Game = Game {
              run :: Bool,
              showHelp :: Bool,
              ship :: Ship,
-             obstacles :: [Object]
+             obstacles :: [Object],
+             screenSize :: (Float, Float)
              } deriving Show
 
 data Object = Object {size :: Float} deriving Show             
@@ -28,25 +30,22 @@ data Ship = Ship {
 
 initShip = Ship (0.0, 0.0) (0.0, 0.0) 0.0 False False False
 
-initGame = Game True False initShip []
+initGame size = Game True False initShip [] size
 
 lightspeed = 20
 
 radiants d = (d * atan 1) / 45
 degrees  r = r * 45 / atan 1
 
-frameHeight = 800
-frameWidth = 800
-
-warp (x, y) = (x', y')
+warp (x, y) (bx, by) = (x', y')
     where x' | x > r = l
              | x < l = r
              | otherwise = x
           y' | y > t = b
              | y < b = t
              | otherwise = y
-          r = frameWidth / 2
-          t = frameHeight / 2
+          r = bx / 2
+          t = by / 2
           l = -r
           b = -t
 
@@ -56,10 +55,10 @@ angle (vx, vy) = degrees $ atan2 vy vx
 magnitude :: Vector -> Float
 magnitude (vx, vy) = sqrt (vx * vx + vy * vy)
 
-updateShip :: Timestep -> Ship -> Ship
-updateShip dt ship = trace (show ship) $ moveShip . steerShip $ ship
+updateShip :: (Float, Float) -> Timestep -> Ship -> Ship
+updateShip size dt ship = trace (show ship) $ moveShip size . steerShip $ ship
 
-moveShip ship@Ship{..} = ship {position = warp (position + velocity)}
+moveShip size ship@Ship{..} = ship {position = warp (position + velocity) size}
 
 steerShip ship@Ship{..} = ship {velocity = v', orientation = o'}
     where v  = velocity + thrust inc velocity orientation
@@ -93,7 +92,7 @@ render :: Game -> Picture
 render game@Game{..} = pictures [drawShip ship]
 
 update :: Timestep -> Game -> Game
-update dt g@Game{..} = g {ship = updateShip dt ship}
+update dt g@Game{..} = g {ship = updateShip screenSize dt ship}
 
 handle :: Event -> Game -> Game
 handle (EventKey (SpecialKey KeyUp     ) k    _ _) g@Game{..} = g {ship = ship {cmdThrust = k == Down}}
@@ -102,12 +101,9 @@ handle (EventKey (SpecialKey KeyRight  ) k    _ _) g@Game{..} = g {ship = ship {
 handle (EventKey (SpecialKey KeyDown   ) Down _ _) g@Game{..} = g {ship = breakingFlip ship}
 handle _ g = g
 
-monoids = play disp background fps (initGame) render handle update
-
-fps = 60
-background = black
-disp = InWindow title (width, height) position
-    where height = round frameHeight
-          width = round frameWidth
-          position = (0, 0)
-          title = "Monoids!"
+monoids = do
+    (w, h) <- getScreenSize
+    let game = initGame (fromIntegral w, fromIntegral h)
+        fps  = 60
+        bg   = black
+    play FullScreen bg fps game render handle update
