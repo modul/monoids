@@ -46,8 +46,8 @@ angle (vx, vy) = degrees $ atan2 vy vx
 magnitude :: Vector -> Float
 magnitude (vx, vy) = sqrt (vx * vx + vy * vy)
 
-updateShip :: (Float, Float) -> Timestep -> Ship -> Ship
-updateShip dim dt ship@Ship{..} = trace (show ship) $ steerShip (ship {body = warp dim . move $ body})
+updateShip :: Dimension -> Ship -> Ship
+updateShip dim ship@Ship{..} = trace (show ship) $ steerShip (ship {body = warp dim . move $ body})
 
 steerShip ship@Ship{..} = ship {body = body {velo = v', ori = o'}}
     where v  = velocity + thrust inc velocity orientation
@@ -91,7 +91,7 @@ render :: Game -> Picture
 render game@Game{..} = pictures [drawShip ship, drawPause pause]
 
 update :: Timestep -> Game -> Game
-update dt g@Game{..} = if pause 
+update _ g@Game{..} = if pause 
                         then g
                         else g {ship = updateShip screenSize dt ship', obstacles = ob}
     where ship' = ship {body = sb}
