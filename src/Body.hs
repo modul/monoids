@@ -40,9 +40,11 @@ warp (bx, by) body@Body{..} = body {pos = warp' pos}
 
 -- | Detect a collision between two circular bodies.
 doesCollide :: Body -> Body -> Bool
-doesCollide a b = collidesWith b
-    where collidesWith Body{..} = within p mass pos
-          p = pos a
+doesCollide a b = distance <= (ra + rb) 
+    where (pa, pb) = (pos a, pos b)
+          (ra, rb) = (mass a, mass b)
+          (dx, dy) = pa - pb
+          distance = sqrt (dx^2 + dy^2)
 
 -- | Check all bodies for collisions with each other and update them if neccessary.
 collisions :: [Body] -> [Body]
