@@ -42,7 +42,7 @@ warp (bx, by) body@Body{..} = body {pos = warp' pos}
 doesCollide :: Body -> Body -> Bool
 doesCollide a b = distance <= (ra + rb) 
     where (pa, pb) = (pos a, pos b)
-          (ra, rb) = (mass a, mass b)
+          (ra, rb) = (mass a/2, mass b/2)
           (dx, dy) = pa - pb
           distance = sqrt (dx^2 + dy^2)
 

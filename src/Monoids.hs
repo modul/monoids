@@ -32,7 +32,8 @@ data Steer = Steer {
             } deriving Show
 
 initSteer = Steer False False False
-initShip = Ship (initBody {shape = shipShape, mass = 1, colour = green}) initSteer
+initShip = Ship body initSteer
+    where body = initBody {shape = shipShape, mass = 30, colour = green}
 
 initGame size = Game False False initShip asteroids size
 
@@ -88,8 +89,7 @@ drawShip Ship{..} = drawBody body
 drawBody Body{..} = at pos $
                      color (if collisionWarning then orange else colour) $
                      rotate (negate ori + 90) $ 
-                     scale mass mass $
-                     polygon shape
+                     pictures [circle (mass/2), scale mass mass $ polygon shape]
 
 drawText size = scale size size . text
 
