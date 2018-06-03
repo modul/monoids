@@ -1,0 +1,21 @@
+name:                monoids
+version:             0.1.0.0
+synopsis:            An Asteroids-like simulation with a little game play.
+description:         After playing around with gloss, this happened - because we can!
+homepage:            https://github.com/modul/monoids#readme
+license:             BSD3
+author:              Remo Giermann
+maintainer:          mo@liberejo.de
+copyright:           (c) Remo Giermann
+category:            Experimental
+extra-source-files:
+- README.md
+
+dependencies:
+  - base >= 4.7 && < 5
+  - gloss
+
+executables:
+  monoids:
+    source-dirs:      src
+    main:             Main.hs
