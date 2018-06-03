@@ -14,6 +14,9 @@ data Body = Body {
                 collisionWarning :: Bool
             } deriving (Show, Eq)
 
+-- | Default body record.
+initBody = Body 0 0 0 0 False
+
 -- | Update the position of a body.
 move :: Body -> Body
 move body@Body{..} = body {pos = pos + velo}
@@ -39,7 +42,7 @@ doesCollide a b = collidesWith b
     where collidesWith Body{..} = within p mass pos
           p = pos a
 
--- | Check all bodies for collisions and update them if neccessary.
+-- | Check all bodies for collisions with each other and update them if neccessary.
 collisions :: [Body] -> [Body]
 collisions obj = map update obj
     where cls x = any (doesCollide x) [b | b <- obj, b /= x]
