@@ -31,7 +31,9 @@ data Steer = Steer {
             } deriving Show
 
 initSteer = Steer False False False
-initShip = Ship initBody initSteer
+initShip = Ship (initBody {shape = shipShape}) initSteer
+
+shipShape = [(0, 15), (10, -15), (0, -5), (-10, -15)]
 
 initGame size = Game False False initShip asteroids size
 
@@ -76,7 +78,7 @@ thrust inc velocity orientation = (vx, vy)
           vx = inc * cos ag
           ag = radiants orientation
 
-asteroidShape = polygon [
+asteroidShape = [
                  ( 0.00,  0.50), ( 0.35,  0.50), 
                  ( 0.50,  0.25), ( 0.50, -0.25), 
                  ( 0.25, -0.50), ( 0.00, -0.50),
@@ -84,22 +86,22 @@ asteroidShape = polygon [
                  (-0.50,  0.25), (-0.25,  0.40)
                 ]
 
-mkAsteroid s p v = Body v p s s False
+mkAsteroid s p v = Body v p s s asteroidShape False
 
 at :: Point -> Picture -> Picture
 at (x, y) = translate x y
 
 drawShip :: Ship -> Picture
-drawShip (Ship (Body _ p o _ c) _) = at p $ 
+drawShip (Ship (Body _ p o _ s c) _) = at p $ 
                       color (if c then orange else green) $ 
                       rotate (negate o + 90) $ 
-                      polygon [(0, 15), (10, -15), (0, -5), (-10, -15)]
+                      polygon s
 
-drawBody shape Body{..} = at pos $
+drawBody Body{..} = at pos $
                      color (if collisionWarning then orange else white) $
                      rotate (negate ori + 90) $ 
                      scale mass mass $
-                     shape
+                     polygon shape
 
 drawText size = scale size size . text
 
@@ -110,7 +112,7 @@ drawPause True = pictures [box, msg]
 drawPause _ = blank
 
 render :: Game -> Picture
-render game@Game{..} = pictures $ [drawShip ship, drawPause pause] ++ map (drawBody asteroidShape) obstacles 
+render game@Game{..} = pictures $ [drawShip ship, drawPause pause] ++ map drawBody obstacles 
 
 updateAsteroids :: Dimension -> [Body] -> [Body]
 updateAsteroids dim bs = map (warp dim . move) bs
