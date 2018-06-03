@@ -32,7 +32,7 @@ initShip = Ship (0.0, 0.0) (0.0, 0.0) 0.0 False False False
 
 initGame size = Game True False initShip [] size
 
-lightspeed = 20
+speedlimit = 30
 
 radiants d = (d * atan 1) / 45
 degrees  r = r * 45 / atan 1
@@ -62,7 +62,7 @@ moveShip size ship@Ship{..} = ship {position = warp (position + velocity) size}
 
 steerShip ship@Ship{..} = ship {velocity = v', orientation = o'}
     where v  = velocity + thrust inc velocity orientation
-          v' = if magnitude v > lightspeed then velocity else v
+          v' = if magnitude v > speedlimit then velocity else v
           o' = orientation + deg * dir
           deg = 5.0
           inc = if cmdThrust then 0.1 else 0
