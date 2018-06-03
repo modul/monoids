@@ -10,7 +10,7 @@ import Graphics.Gloss.Interface.Environment
 type Timestep = Float
 
 data Game = Game {
-             run :: Bool,
+             pause :: Bool,
              showHelp :: Bool,
              ship :: Ship,
              obstacles :: [Object],
@@ -30,7 +30,7 @@ data Ship = Ship {
 
 initShip = Ship (0.0, 0.0) (0.0, 0.0) 0.0 False False False
 
-initGame size = Game True False initShip [] size
+initGame size = Game False False initShip [] size
 
 speedlimit = 30
 
@@ -88,17 +88,27 @@ drawShip Ship{..} = at position $
                       rotate (negate orientation + 90) $ 
                       polygon [(0, 15), (10, -15), (0, -5), (-10, -15)]
 
+drawText size = scale size size . text
+
+drawPause True = pictures [box, msg] 
+    where box = color orange $ rectangleSolid w h
+          msg = translate (-0.2 * w) (-0.2 * h) $ drawText 0.2 "Paused"
+          (w, h) = (250, 50)
+drawPause _ = blank
+
 render :: Game -> Picture
-render game@Game{..} = pictures [drawShip ship]
+render game@Game{..} = pictures [drawShip ship, drawPause pause]
 
 update :: Timestep -> Game -> Game
-update dt g@Game{..} = g {ship = updateShip screenSize dt ship}
+update dt g@Game{..} | pause = g
+                     | otherwise = g {ship = updateShip screenSize dt ship}
 
 handle :: Event -> Game -> Game
 handle (EventKey (SpecialKey KeyUp     ) k    _ _) g@Game{..} = g {ship = ship {cmdThrust = k == Down}}
 handle (EventKey (SpecialKey KeyLeft   ) k    _ _) g@Game{..} = g {ship = ship {cmdLeft = k == Down}}
 handle (EventKey (SpecialKey KeyRight  ) k    _ _) g@Game{..} = g {ship = ship {cmdRight = k == Down}}
 handle (EventKey (SpecialKey KeyDown   ) Down _ _) g@Game{..} = g {ship = breakingFlip ship}
+handle (EventKey (SpecialKey KeySpace  ) Down _ _) g@Game{..} = g {pause = not pause}
 handle _ g = g
 
 monoids = do
