@@ -32,7 +32,7 @@ data Steer = Steer {
             } deriving Show
 
 initSteer = Steer False False False
-initShip = Ship (initBody {shape = shipShape}) initSteer
+initShip = Ship (initBody {shape = shipShape, mass = 1, colour = green}) initSteer
 
 initGame size = Game False False initShip asteroids size
 
@@ -77,19 +77,16 @@ thrust inc velocity orientation = (vx, vy)
           vx = inc * cos ag
           ag = radiants orientation
 
-mkAsteroid s p v = Body v p s s asteroidShape False
+mkAsteroid s p v = Body v p s s asteroidShape white False
 
 at :: Point -> Picture -> Picture
 at (x, y) = translate x y
 
 drawShip :: Ship -> Picture
-drawShip (Ship (Body _ p o _ s c) _) = at p $ 
-                      color (if c then orange else green) $ 
-                      rotate (negate o + 90) $ 
-                      polygon s
+drawShip Ship{..} = drawBody body
 
 drawBody Body{..} = at pos $
-                     color (if collisionWarning then orange else white) $
+                     color (if collisionWarning then orange else colour) $
                      rotate (negate ori + 90) $ 
                      scale mass mass $
                      polygon shape

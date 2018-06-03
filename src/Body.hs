@@ -12,11 +12,12 @@ data Body = Body {
                 ori :: Float,
                 mass :: Float,
                 shape :: Path,
+                colour :: Color,
                 collisionWarning :: Bool
             } deriving (Show, Eq)
 
 -- | Default body record.
-initBody = Body 0 0 0 0 [0] False
+initBody = Body 0 0 0 0 [0] white False
 
 -- | Update the position of a body.
 move :: Body -> Body
