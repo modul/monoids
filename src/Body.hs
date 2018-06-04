@@ -1,9 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 module Body where
 
-import Graphics.Gloss
-
-type Dimension = Point
+import Util
 
 -- | Generic body type. 
 data Body = Body {
@@ -18,6 +16,9 @@ data Body = Body {
 
 -- | Default body record.
 initBody = Body 0 0 0 0 [0] white False
+
+-- | General speed limit for all moving objects.
+speedlimit = 30 :: Float
 
 -- | Update the position of a body.
 move :: Body -> Body
