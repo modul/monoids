@@ -6,6 +6,8 @@ import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 import Graphics.Gloss.Interface.Environment
 
+import Data.Maybe
+
 import System.Random
 
 import Body
@@ -13,6 +15,7 @@ import Ship
 import Asteroid
 import Draw
 import Shapes
+import Util
 
 type Timestep = Float
 
@@ -41,12 +44,27 @@ hitThrust x ship@Ship{..} = ship {steer = steer {cmdThrust = x}}
 hitLeft x ship@Ship{..} = ship {steer = steer {cmdLeft = x}}
 hitRight x ship@Ship{..} = ship {steer = steer {cmdRight = x}}
 
+fire :: Ship -> (Ship, Maybe Body)
+fire ship@Ship{..} = trace (show bullet) $ (ship, Just bullet)
+    where bullet = initBody {velo = v', pos = vpos, ori = o, mass = 5, 
+                             shape = [(-0.5, 0.5), (0.5, 0.5), (0.5, -0.5), (-0.5, -0.5)],
+                             colour = red}
+          (v, p, o, r) = (velo body, pos body, radiants (ori body), mass body / 2)
+          vpos = p + (1.5 * r * cos o, 1.5 * r * sin o)
+          vmag = 10
+          varg = o
+          v' = (vmag * cos varg, vmag * sin varg) + v -- that would be correct but less fun, maybe?
+
+
 handle :: Event -> Game -> Game
 handle (EventKey (SpecialKey KeyUp     ) k    _ _) g@Game{..} = g {ship = hitThrust (k == Down) ship}
 handle (EventKey (SpecialKey KeyLeft   ) k    _ _) g@Game{..} = g {ship = hitLeft (k == Down) ship}
 handle (EventKey (SpecialKey KeyRight  ) k    _ _) g@Game{..} = g {ship = hitRight (k == Down) ship}
 handle (EventKey (SpecialKey KeyDown   ) Down _ _) g@Game{..} = g {ship = breakingFlip ship}
 handle (EventKey (SpecialKey KeySpace  ) Down _ _) g@Game{..} = g {pause = not pause}
+handle (EventKey (SpecialKey KeyShiftR ) Down _ _) g@Game{..} = g {ship = ship', obstacles = obst'}
+    where (ship', projectiles) = fire ship
+          obst' = obstacles ++ maybeToList projectiles
 handle _ g = g
 
 monoids = do
